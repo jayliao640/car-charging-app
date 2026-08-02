@@ -1,0 +1,21 @@
+{
+  "name": "汽車充電紀錄",
+  "short_name": "充電紀錄",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f7fb",
+  "theme_color": "#1f4e78",
+  "description": "記錄充電前電量並統計日期區間總充電量。",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
