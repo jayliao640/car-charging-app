@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1f4e78">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="充電紀錄">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <title>汽車充電紀錄</title>
+  <style>
+    :root{
+      --bg:#f4f7fb;--card:#fff;--primary:#1f4e78;--primary2:#2f75b5;
+      --text:#1f2937;--muted:#6b7280;--border:#d9e2ef;--green:#2e7d32;
+      --danger:#b42318;--warning:#9a6700;--shadow:0 8px 24px rgba(31,78,120,.10)
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:"Microsoft JhengHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    button,input,select,textarea{font:inherit}
+    .app{max-width:1100px;margin:auto;padding:16px 16px 44px}
+    header{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border-radius:20px;padding:22px;box-shadow:var(--shadow)}
+    header h1{margin:0 0 7px;font-size:28px} header p{margin:0;opacity:.94}
+    .status{margin-top:13px;background:rgba(255,255,255,.15);padding:10px 12px;border-radius:10px;font-size:13px}
+    .top-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+    .stat,.card{background:var(--card);border:1px solid var(--border);border-radius:17px;box-shadow:0 4px 16px rgba(31,78,120,.05)}
+    .stat{padding:16px}.stat .label{font-size:14px;color:var(--muted)}.stat .value{font-size:25px;font-weight:800;margin-top:8px}
+    .card{padding:18px;margin-top:14px}.card h2{margin:0 0 15px;font-size:21px}
+    .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    label{display:block;font-weight:800;font-size:14px;margin-bottom:6px}
+    input,select,textarea{width:100%;border:1px solid var(--border);border-radius:11px;padding:11px 12px;background:#fff}
+    input:focus,select:focus,textarea:focus{outline:2px solid rgba(47,117,181,.18);border-color:var(--primary2)}
+    button{border:0;border-radius:11px;padding:11px 15px;font-weight:800;cursor:pointer}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .primary{background:var(--primary);color:#fff}.secondary{background:#e8eef5;color:var(--text)}
+    .danger{background:#fdecec;color:var(--danger)}.success{background:#eaf7ed;color:var(--green)}
+    .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+    .calc{margin-top:13px;background:#eef6ff;border:1px solid #c9def4;padding:14px;border-radius:12px}
+    .calc strong{font-size:23px;color:var(--primary)}
+    .hint{font-size:13px;color:var(--muted);line-height:1.55;margin-top:6px}
+    .preview{display:none;max-width:280px;max-height:210px;object-fit:contain;margin-top:9px;border-radius:12px;border:1px solid var(--border)}
+    .filter{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:10px 8px;border-bottom:1px solid var(--border);text-align:left;font-size:14px;vertical-align:middle}
+    th{background:#f8fafc}.thumb{width:58px;height:58px;object-fit:cover;border-radius:8px;border:1px solid var(--border)}
+    .pill{display:inline-block;padding:4px 8px;background:#edf7ee;color:var(--green);font-weight:800;border-radius:999px}
+    .vehicle-pill{display:inline-flex;align-items:center;gap:7px;padding:5px 9px;background:#eef4fb;border-radius:999px;font-weight:800}
+    .dot{width:10px;height:10px;border-radius:50%;background:#2f75b5}
+    .empty{text-align:center;color:var(--muted);padding:30px}
+    .banner{padding:11px 13px;border-radius:11px;margin-bottom:12px;font-size:14px}
+    .banner.ok{background:#eaf7ed;color:#216e2a;border:1px solid #b9dfc0}
+    .banner.warn{background:#fff6d8;color:#775700;border:1px solid #f0d67b}
+    .modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:30}
+    .modal.open{display:flex}.modal-card{width:min(620px,100%);background:#fff;border-radius:18px;padding:20px;max-height:92vh;overflow:auto}
+    .modal-card h3{margin-top:0}.meta{font-size:12px;color:var(--muted);line-height:1.6}
+    .vehicle-list{display:grid;gap:10px}.vehicle-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px;border:1px solid var(--border);border-radius:12px}
+    .vehicle-row strong{display:block}.vehicle-row .sub{font-size:13px;color:var(--muted);margin-top:3px}
+    @media(max-width:760px){
+      .stats,.grid2,.grid3,.filter{grid-template-columns:1fr}
+      table{display:block;overflow-x:auto;white-space:nowrap}
+      header h1{font-size:24px}
+      .vehicle-row{align-items:flex-start;flex-direction:column}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>汽車充電紀錄</h1>
+    <p>多車輛管理｜iPhone、Android、電腦同步文字紀錄｜照片僅留在原始裝置</p>
+    <div class="top-actions">
+      <button class="secondary" id="installBtn" style="display:none">安裝到手機</button>
+      <button class="secondary" id="vehicleManageBtn">車輛管理</button>
+    </div>
+    <div class="status" id="syncStatus">正在連接 Firebase…</div>
+  </header>
+
+  <section class="stats">
+    <div class="stat"><div class="label">區間充電次數</div><div class="value" id="countStat">0 次</div></div>
+    <div class="stat"><div class="label">區間總用電度數</div><div class="value" id="kwhStat">0.00 kWh</div></div>
+    <div class="stat"><div class="label">平均每次用電</div><div class="value" id="avgStat">0.00 kWh</div></div>
+  </section>
+
+  <section class="card">
+    <h2>新增充電紀錄</h2>
+    <div class="grid2">
+      <div>
+        <label for="vehicleSelect">車輛</label>
+        <select id="vehicleSelect"></select>
+      </div>
+      <div>
+        <label for="date">充電日期</label>
+        <input type="date" id="date">
+      </div>
+      <div>
+        <label for="soc">充電前剩餘電量（%）</label>
+        <input type="number" id="soc" min="0" max="100" step="1" placeholder="例如：78">
+      </div>
+      <div>
+        <label for="photo">儀表照片（選填，僅存在本機）</label>
+        <input type="file" id="photo" accept="image/*">
+        <div class="hint">可拍照或從相簿選擇；照片會壓縮至 1MB 以下，只保存在目前裝置。</div>
+        <img id="preview" class="preview" alt="照片預覽">
+      </div>
+      <div style="grid-column:1/-1">
+        <label for="note">備註（選填）</label>
+        <textarea id="note" rows="3" placeholder="例如：家中充電"></textarea>
+      </div>
+    </div>
+    <div class="calc">
+      本次預估充電量：<strong id="calcKwh">0.00 kWh</strong>
+      <div class="hint" id="formulaHint">公式：（100 − 充電前電量%）× 電池容量 ÷ 100</div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="saveBtn">儲存紀錄</button>
+      <button class="secondary" id="resetBtn">清除輸入</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>日期區間統計與紀錄</h2>
+    <div class="filter">
+      <div><label for="filterVehicle">車輛</label><select id="filterVehicle"></select></div>
+      <div><label for="startDate">開始日期</label><input type="date" id="startDate"></div>
+      <div><label for="endDate">結束日期</label><input type="date" id="endDate"></div>
+      <button class="primary" id="filterBtn">套用區間</button>
+    </div>
+    <div class="actions">
+      <button class="secondary" id="thisMonthBtn">本月</button>
+      <button class="secondary" id="allBtn">全部日期</button>
+      <button class="secondary" id="exportBtn">匯出 CSV</button>
+    </div>
+    <div class="calc">
+      區間合計：<strong id="rangeTotalKwh">0.00 kWh</strong>
+      <div class="hint" id="rangeSummaryText">0 次充電｜平均 0.00 kWh／次</div>
+    </div>
+    <div id="tableWrap"></div>
+  </section>
+</div>
+
+<div class="modal" id="editModal">
+  <div class="modal-card">
+    <h3>編輯充電紀錄</h3>
+    <div class="grid2">
+      <div><label>車輛</label><select id="editVehicle"></select></div>
+      <div><label>日期</label><input type="date" id="editDate"></div>
+      <div><label>充電前剩餘電量（%）</label><input type="number" id="editSoc" min="0" max="100"></div>
+      <div>
+        <label>本機照片（選填）</label>
+        <input type="file" id="editPhoto" accept="image/*">
+        <img id="editPreview" class="preview" alt="照片預覽">
+        <div class="actions">
+          <button class="danger" id="removeLocalPhotoBtn" type="button">刪除本機照片</button>
+        </div>
+      </div>
+      <div style="grid-column:1/-1"><label>備註</label><textarea id="editNote" rows="3"></textarea></div>
+    </div>
+    <div class="calc">修改後預估充電量：<strong id="editKwh">0.00 kWh</strong></div>
+    <div class="meta" id="editMeta"></div>
+    <div class="actions">
+      <button class="primary" id="confirmEditBtn">儲存修改</button>
+      <button class="secondary" id="closeEditBtn">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="vehicleModal">
+  <div class="modal-card">
+    <h3>車輛管理</h3>
+    <div id="vehicleBanner" class="banner warn">預設車輛：BQH-8307（22 kWh）</div>
+    <div class="vehicle-list" id="vehicleList"></div>
+    <hr style="border:0;border-top:1px solid var(--border);margin:18px 0">
+    <h3 id="vehicleFormTitle">新增車輛</h3>
+    <div class="grid3">
+      <div><label>車號</label><input id="vehiclePlateInput" placeholder="例如：ABC-1234"></div>
+      <div><label>車名（選填）</label><input id="vehicleNameInput" placeholder="例如：RAV4 PHEV"></div>
+      <div><label>電池容量（kWh）</label><input id="vehicleBatteryInput" type="number" min="0.1" step="0.1" placeholder="例如：22"></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="saveVehicleBtn">新增車輛</button>
+      <button class="secondary" id="cancelVehicleEditBtn" style="display:none">取消編輯</button>
+      <button class="secondary" id="closeVehicleBtn">關閉</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>
